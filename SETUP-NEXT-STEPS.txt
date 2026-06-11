@@ -1,0 +1,70 @@
+============================================================
+TeachZenith — Setup & Compatibility Check: How to run it
+============================================================
+
+WHAT THESE SCRIPTS DO
+  setup-teachzenith.sh   Creates the whole "teachzenith" folder tree and all the
+                         package.json / tsconfig files.
+  check-deps.sh          Installs every dependency and verifies they're compatible
+                         (checks Node version, scans for conflicts, type-checks).
+  setup-teachzenith.ps1  Windows PowerShell version of the folder setup.
+
+PREREQUISITE (install once)
+  - Node.js 18 or newer (LTS recommended): https://nodejs.org
+    Check with:  node -v
+  Optional, only needed later when you RUN the app (not for this check):
+  - PostgreSQL 16+ with pgvector  (to run the database)
+  - Redis                          (to run the background worker)
+
+------------------------------------------------------------
+ON macOS / LINUX  (and Windows via Git Bash or WSL)
+------------------------------------------------------------
+1. Put setup-teachzenith.sh and check-deps.sh in the folder where you want the
+   project to live (e.g. your Documents or a "projects" folder).
+
+2. Create the structure:
+       bash setup-teachzenith.sh
+
+3. Go into the new folder:
+       cd teachzenith
+
+4. Install + verify (this is the compatibility check):
+       bash check-deps.sh
+   You want to see:  "Compatibility check passed. The project is sound."
+
+------------------------------------------------------------
+ON WINDOWS (PowerShell, no Git Bash)
+------------------------------------------------------------
+1. Create the structure:
+       powershell -ExecutionPolicy Bypass -File setup-teachzenith.ps1
+2. Then run these commands inside the teachzenith folder to install + check:
+       cd teachzenith
+       npm install
+       npm run typecheck
+   (Git Bash is smoother — it lets you run check-deps.sh directly. Optional.)
+
+------------------------------------------------------------
+AFTER THE CHECK PASSES
+------------------------------------------------------------
+1. Put the database schema in place: unzip teachzenith-database.zip so that
+   db/migrations/, db/seeds/, and db/migrate.sh sit inside the db/ folder.
+2. (Optional) drop the harness zip's contents into harness/.
+3. When PostgreSQL is installed and running:
+       createdb teachzenith
+       npm run db:migrate
+4. Tell me the check passed, and we move on to backend scaffolding — turning the
+   empty backend/ folder into a running API wired to the database.
+
+------------------------------------------------------------
+VERIFIED VERSIONS (already pinned in the package.json files)
+------------------------------------------------------------
+Backend : express 4.22.2 · pg 8.21.0 · @anthropic-ai/sdk 0.104.1 · bullmq 5.78.0
+          · ioredis 5.11.1 · zod 4.4.3 · dotenv 16.6.1 · typescript 5.9.3 · tsx 4.22.4
+Frontend: next 15.5.19 · react 19.2.7 · react-dom 19.2.7 · tailwindcss 3.4.19
+          · typescript 5.9.3
+Shared  : typescript 5.9.3
+(TypeScript is pinned to 5.9.3 across all three packages so the two halves of the
+ repo never drift onto different major versions.)
+
+These were installed and type-checked together with no conflicts before being
+handed to you.

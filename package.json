@@ -1,0 +1,13 @@
+{
+  "name": "teachzenith",
+  "private": true,
+  "version": "0.1.0",
+  "description": "AI-powered international teaching job matching for Nigerian teachers.",
+  "workspaces": ["shared", "backend", "frontend"],
+  "scripts": {
+    "db:migrate": "cd db && bash migrate.sh",
+    "backend:dev": "npm --workspace backend run dev",
+    "frontend:dev": "npm --workspace frontend run dev",
+    "typecheck": "npm --workspace shared run typecheck && npm --workspace backend run typecheck && npm --workspace frontend run typecheck"
+  }
+}

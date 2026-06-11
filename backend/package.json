@@ -1,0 +1,32 @@
+{
+  "name": "@teachzenith/backend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "migrate": "node-pg-migrate",
+    "migrate:up": "node-pg-migrate up",
+    "migrate:down": "node-pg-migrate down"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "0.104.1",
+    "bullmq": "5.78.0",
+    "dotenv": "16.6.1",
+    "express": "4.22.2",
+    "ioredis": "5.11.1",
+    "pg": "8.21.0",
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "@types/express": "4.17.23",
+    "@types/node": "22.9.0",
+    "@types/pg": "8.20.0",
+    "node-pg-migrate": "7.9.1",
+    "tsx": "4.22.4",
+    "typescript": "5.9.3"
+  }
+}
