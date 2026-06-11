@@ -2,23 +2,26 @@
 // Used by both backend and frontend so the two never disagree on valid values.
 
 export type QualificationLevel =
-  | "bed_or_education_degree"
+  | "bed_subject"
   | "degree_plus_pgde"
-  | "masters"
+  | "masters_education"
   | "degree_no_teaching_qual";
 
 export type Curriculum =
   | "nigerian"
   | "british_igcse"
   | "ib"
-  | "american";
+  | "american"
+  | "other";
 
-export type EnglishTestStatus =
-  | "has_score"
+export type EnglishStatus =
+  | "ielts"
+  | "toefl"
+  | "duolingo"
   | "can_take"
-  | "unknown";
+  | "native"
+  | "unsure";
 
-// The friction tier — the heart of the product. Lives on a match.
 export type FrictionTier =
   | "apply_now"
   | "apply_with_prep"
@@ -43,3 +46,13 @@ export type SourceKind =
   | "targeted_site"
   | "partner_feed"
   | "manual";
+
+export type RegionCode =
+  | "gulf"
+  | "southeast_asia"
+  | "east_asia"
+  | "europe_uk"
+  | "north_america"
+  | "australia_nz"
+  | "africa_non_nigeria"
+  | "anywhere";

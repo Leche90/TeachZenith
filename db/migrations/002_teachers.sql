@@ -1,53 +1,52 @@
 -- ============================================================================
--- TeachZenith — Migration 002: Teachers
+-- TeachZenith — Migration 002: Teachers  (REVISED for 7-question intake)
 -- ----------------------------------------------------------------------------
--- The teacher profile is the single source everything matches against (spec 4.1).
--- We split it into:
---   teachers              — the account + the 6-question intake answers
---   teacher_subjects      — many subjects per teacher
---   teacher_curriculums   — many curriculums per teacher
---   teacher_destinations  — preferred destinations (ordering only, per spec)
--- Splitting the many-valued fields into child tables (rather than arrays) keeps
--- matching queries simple and indexable.
+-- teachers              account + single-value intake answers
+-- teacher_subjects      Q1 (multi)         -> subjects vocabulary
+-- teacher_curriculums   Q5 (multi)
+-- teacher_english       Q6 (multi, no scores)
+-- teacher_destinations  Q7 (multi, ranked) -> region_code enum
 -- ============================================================================
 
 CREATE TABLE teachers (
   id                    UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 
-  -- Account basics. Email is optional at first: the spec promises results with
-  -- "no sign-up to see results", so a teacher can complete intake anonymously
-  -- and attach an email later when they save.
   email                 CITEXT UNIQUE,
   full_name             TEXT,
   phone                 TEXT,
 
-  -- --- Intake answers (the 6 questions) ---
-  qualification         qualification_level,           -- Q1
-  -- Q2 (subjects) and Q4 (curriculums) are in child tables below.
-  years_experience_min  SMALLINT,                      -- Q3 lower bound, e.g. 5
-  years_experience_max  SMALLINT,                      -- Q3 upper bound, e.g. 9 (NULL = "10+")
-  english_test          english_test_status DEFAULT 'unknown', -- Q5
-  english_band          NUMERIC(3,1),                  -- optional IELTS score e.g. 7.5
-  -- Q6 (destination prefs) is in a child table below.
+  -- Q2 — highest qualification (single-select)
+  qualification         qualification_level,
 
-  -- Free-form extras we may collect on the fuller profile later.
-  headline              TEXT,                          -- e.g. "IGCSE Physics teacher, 7 yrs"
+  -- Q2 add-ons
+  trcn_certified        BOOLEAN,            -- TRCN certified? (yes/no)
+  has_teaching_license  BOOLEAN,            -- license/cert in any country? (incl. QTS)
+  license_country       TEXT,              -- if yes, which country
+
+  -- Q3 — experience band (we store the numeric range; max NULL = open-ended "15+")
+  years_experience_min  SMALLINT,
+  years_experience_max  SMALLINT,
+
+  -- Q4 — willing to teach outside subject specialization?
+  willing_outside_specialization BOOLEAN,
+
+  -- Q1 / Q5 "Other (specify)" free text — stored, low-signal for matching
+  other_subject         TEXT,
+  other_curriculum      TEXT,
+
+  -- Profile extras (fuller profile later)
+  headline              TEXT,
   bio                   TEXT,
-
-  -- Semantic representation of the profile for vector matching (filled later).
   profile_embedding     vector(1536),
 
-  -- Housekeeping.
-  completed_intake_at   TIMESTAMPTZ,                   -- when the 6 Qs were finished
+  completed_intake_at   TIMESTAMPTZ,
   created_at            TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at            TIMESTAMPTZ NOT NULL DEFAULT now(),
 
   CONSTRAINT years_range_valid
     CHECK (years_experience_max IS NULL
            OR years_experience_min IS NULL
-           OR years_experience_max >= years_experience_min),
-  CONSTRAINT english_band_valid
-    CHECK (english_band IS NULL OR (english_band >= 0 AND english_band <= 9))
+           OR years_experience_max >= years_experience_min)
 );
 
 CREATE TRIGGER trg_teachers_updated
@@ -57,14 +56,11 @@ CREATE TRIGGER trg_teachers_updated
 CREATE INDEX idx_teachers_qualification ON teachers (qualification);
 CREATE INDEX idx_teachers_completed     ON teachers (completed_intake_at);
 
--- --- Subjects (Q2): many per teacher ----------------------------------------
--- Subjects are a controlled vocabulary kept in its own table so we can match
--- jobs to teachers reliably and add subjects without a schema change.
+-- --- Subjects vocabulary (Q1) ------------------------------------------------
 CREATE TABLE subjects (
   id    SMALLINT PRIMARY KEY,
-  slug  TEXT UNIQUE NOT NULL,        -- 'maths', 'physics', 'computer_science'
-  label TEXT NOT NULL,              -- 'Maths', 'Computer Science / ICT'
-  -- Shortage subjects open more doors (esp. UK) — flag drives tiering hints.
+  slug  TEXT UNIQUE NOT NULL,
+  label TEXT NOT NULL,
   is_shortage BOOLEAN NOT NULL DEFAULT false
 );
 
@@ -73,21 +69,26 @@ CREATE TABLE teacher_subjects (
   subject_id SMALLINT NOT NULL REFERENCES subjects(id) ON DELETE RESTRICT,
   PRIMARY KEY (teacher_id, subject_id)
 );
-
 CREATE INDEX idx_teacher_subjects_subject ON teacher_subjects (subject_id);
 
--- --- Curriculums (Q4): many per teacher -------------------------------------
+-- --- Curriculums (Q5) --------------------------------------------------------
 CREATE TABLE teacher_curriculums (
   teacher_id  UUID NOT NULL REFERENCES teachers(id) ON DELETE CASCADE,
   curriculum  curriculum NOT NULL,
   PRIMARY KEY (teacher_id, curriculum)
 );
 
--- --- Destination preferences (Q6): ordering only ----------------------------
--- Per spec, prefs only ORDER results — every qualifying role still shows.
+-- --- English proficiency statuses (Q6, multi-select, no scores) --------------
+CREATE TABLE teacher_english (
+  teacher_id UUID NOT NULL REFERENCES teachers(id) ON DELETE CASCADE,
+  status     english_status NOT NULL,
+  PRIMARY KEY (teacher_id, status)
+);
+
+-- --- Destination preferences (Q7, ranked) ------------------------------------
 CREATE TABLE teacher_destinations (
   teacher_id   UUID NOT NULL REFERENCES teachers(id) ON DELETE CASCADE,
-  region_code  TEXT NOT NULL,        -- 'gulf','asia','uk','canada_australia','any'
+  region       region_code NOT NULL,
   rank         SMALLINT NOT NULL DEFAULT 1,
-  PRIMARY KEY (teacher_id, region_code)
+  PRIMARY KEY (teacher_id, region)
 );

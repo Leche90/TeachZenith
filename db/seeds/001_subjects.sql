@@ -1,25 +1,19 @@
 -- ============================================================================
--- TeachZenith — Seed: subjects controlled vocabulary
--- ----------------------------------------------------------------------------
--- Mirrors intake Q2. is_shortage flags subjects that open more doors abroad
--- (especially UK Skilled Worker shortage subjects), which the tiering logic
--- uses as a hint. Safe to re-run: ON CONFLICT keeps it idempotent.
+-- TeachZenith — Seed: subjects vocabulary (Q1). REVISED to match agreed wording.
+-- is_shortage flags subjects that open more doors abroad (esp. UK shortage
+-- subjects), used as a hint by tiering. Idempotent.
 -- ============================================================================
 
 INSERT INTO subjects (id, slug, label, is_shortage) VALUES
-  (1,  'maths',            'Maths',                       true),
-  (2,  'physics',          'Physics',                     true),
-  (3,  'chemistry',        'Chemistry',                   true),
-  (4,  'biology',          'Biology',                     false),
-  (5,  'computer_science', 'Computer Science / ICT',      true),
-  (6,  'english',          'English',                     false),
-  (7,  'primary_general',  'Primary / general',           false),
-  (8,  'geography',        'Geography',                   false),
-  (9,  'history',          'History',                     false),
-  (10, 'economics',        'Economics',                   false),
-  (11, 'french',           'French',                      false),
-  (12, 'art',              'Art',                         false),
-  (13, 'other',            'Other',                       false)
+  (1,  'mathematics',       'Mathematics',                    true),
+  (2,  'physics',           'Physics',                        true),
+  (3,  'chemistry',         'Chemistry',                      true),
+  (4,  'biology',           'Biology',                        false),
+  (5,  'english',           'English Language & Literature',  false),
+  (6,  'computer_science',  'Computer Science / ICT',         true),
+  (7,  'economics_business','Economics / Business Studies',   false),
+  (8,  'primary_general',   'Primary / General Education',    false),
+  (9,  'other',             'Other',                          false)
 ON CONFLICT (id) DO UPDATE
   SET slug = EXCLUDED.slug,
       label = EXCLUDED.label,

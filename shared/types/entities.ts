@@ -5,11 +5,12 @@
 import type {
   QualificationLevel,
   Curriculum,
-  EnglishTestStatus,
+  EnglishStatus,
   FrictionTier,
   JobStatus,
   ApplicationStatus,
   SourceKind,
+  RegionCode,
 } from "./enums.js";
 
 // --- Teacher (intake profile) ------------------------------------------------
@@ -19,23 +20,28 @@ export interface Teacher {
   fullName: string | null;
   phone: string | null;
   qualification: QualificationLevel | null;
+  trcnCertified: boolean | null;
+  hasTeachingLicense: boolean | null;
+  licenseCountry: string | null;
   yearsExperienceMin: number | null;
-  yearsExperienceMax: number | null;   // null = "10+"
-  englishTest: EnglishTestStatus;
-  englishBand: number | null;          // e.g. 7.5
+  yearsExperienceMax: number | null;   // null = open-ended "15+"
+  willingOutsideSpecialization: boolean | null;
+  otherSubject: string | null;
+  otherCurriculum: string | null;
   headline: string | null;
   bio: string | null;
   completedIntakeAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
   // Relations (loaded on demand)
-  subjects?: number[];                 // subject ids
+  subjects?: number[];
   curriculums?: Curriculum[];
+  englishStatuses?: EnglishStatus[];
   destinations?: TeacherDestination[];
 }
 
 export interface TeacherDestination {
-  regionCode: string;                  // 'gulf','asia','uk','canada_australia','any'
+  region: RegionCode;
   rank: number;
 }
 
@@ -74,7 +80,7 @@ export interface Job {
   description: string | null;
   applyUrl: string | null;
   countryCode: string | null;
-  regionCode: string | null;
+  region: RegionCode | null;
   city: string | null;
   salaryMin: number | null;
   salaryMax: number | null;

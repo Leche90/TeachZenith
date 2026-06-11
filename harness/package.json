@@ -1,0 +1,17 @@
+{
+  "name": "teachzenith-harness",
+  "version": "0.1.0",
+  "description": "Data-source test harness for TeachZenith — measures coverage, freshness, and role quality from Adzuna and JSearch.",
+  "type": "module",
+  "scripts": {
+    "harness": "tsx src/run.ts"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3",
+    "@types/node": "^22.9.0"
+  }
+}

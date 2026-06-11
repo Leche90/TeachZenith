@@ -1,13 +1,14 @@
-// Teachers data access. Handles the teacher row plus its child tables
-// (subjects, curriculums, destinations) in single transactions so a profile is
-// always written consistently.
+// Teachers data access. Writes the teacher row plus child tables (subjects,
+// curriculums, english statuses, destinations) in one transaction so a profile
+// is always consistent.
 
 import { pool, query, queryOne } from "../db/pool.js";
 import type {
   Teacher,
   Curriculum,
   QualificationLevel,
-  EnglishTestStatus,
+  EnglishStatus,
+  RegionCode,
 } from "../../../shared/types/index.js";
 
 interface TeacherRow {
@@ -16,10 +17,14 @@ interface TeacherRow {
   full_name: string | null;
   phone: string | null;
   qualification: QualificationLevel | null;
+  trcn_certified: boolean | null;
+  has_teaching_license: boolean | null;
+  license_country: string | null;
   years_experience_min: number | null;
   years_experience_max: number | null;
-  english_test: EnglishTestStatus;
-  english_band: string | null;       // numeric comes back as string in pg
+  willing_outside_specialization: boolean | null;
+  other_subject: string | null;
+  other_curriculum: string | null;
   headline: string | null;
   bio: string | null;
   completed_intake_at: Date | null;
@@ -34,10 +39,14 @@ function mapTeacher(r: TeacherRow): Teacher {
     fullName: r.full_name,
     phone: r.phone,
     qualification: r.qualification,
+    trcnCertified: r.trcn_certified,
+    hasTeachingLicense: r.has_teaching_license,
+    licenseCountry: r.license_country,
     yearsExperienceMin: r.years_experience_min,
     yearsExperienceMax: r.years_experience_max,
-    englishTest: r.english_test,
-    englishBand: r.english_band === null ? null : Number(r.english_band),
+    willingOutsideSpecialization: r.willing_outside_specialization,
+    otherSubject: r.other_subject,
+    otherCurriculum: r.other_curriculum,
     headline: r.headline,
     bio: r.bio,
     completedIntakeAt: r.completed_intake_at,
@@ -46,21 +55,24 @@ function mapTeacher(r: TeacherRow): Teacher {
   };
 }
 
-// The 6-question intake payload used to create a profile.
 export interface CreateTeacherInput {
-  qualification: QualificationLevel;
   subjectIds: number[];
+  otherSubject?: string | null;
+  qualification: QualificationLevel;
+  trcnCertified?: boolean | null;
+  hasTeachingLicense?: boolean | null;
+  licenseCountry?: string | null;
   yearsExperienceMin: number;
-  yearsExperienceMax: number | null;   // null = "10+"
+  yearsExperienceMax: number | null;
+  willingOutsideSpecialization?: boolean | null;
   curriculums: Curriculum[];
-  englishTest: EnglishTestStatus;
-  englishBand?: number | null;
-  destinations: string[];              // region codes, in preference order
+  otherCurriculum?: string | null;
+  englishStatuses: EnglishStatus[];
+  destinations: RegionCode[];
   email?: string | null;
   fullName?: string | null;
 }
 
-// Create a teacher and all child rows atomically.
 export async function createTeacher(input: CreateTeacherInput): Promise<Teacher> {
   const client = await pool.connect();
   try {
@@ -68,18 +80,24 @@ export async function createTeacher(input: CreateTeacherInput): Promise<Teacher>
 
     const insert = await client.query<TeacherRow>(
       `INSERT INTO teachers
-         (email, full_name, qualification, years_experience_min,
-          years_experience_max, english_test, english_band, completed_intake_at)
-       VALUES ($1,$2,$3,$4,$5,$6,$7, now())
+         (email, full_name, qualification, trcn_certified, has_teaching_license,
+          license_country, years_experience_min, years_experience_max,
+          willing_outside_specialization, other_subject, other_curriculum,
+          completed_intake_at)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11, now())
        RETURNING *`,
       [
         input.email ?? null,
         input.fullName ?? null,
         input.qualification,
+        input.trcnCertified ?? null,
+        input.hasTeachingLicense ?? null,
+        input.licenseCountry ?? null,
         input.yearsExperienceMin,
         input.yearsExperienceMax,
-        input.englishTest,
-        input.englishBand ?? null,
+        input.willingOutsideSpecialization ?? null,
+        input.otherSubject ?? null,
+        input.otherCurriculum ?? null,
       ],
     );
     const teacher = insert.rows[0]!;
@@ -98,10 +116,17 @@ export async function createTeacher(input: CreateTeacherInput): Promise<Teacher>
         [teacher.id, c],
       );
     }
+    for (const s of input.englishStatuses) {
+      await client.query(
+        `INSERT INTO teacher_english (teacher_id, status)
+         VALUES ($1,$2) ON CONFLICT DO NOTHING`,
+        [teacher.id, s],
+      );
+    }
     let rank = 1;
     for (const region of input.destinations) {
       await client.query(
-        `INSERT INTO teacher_destinations (teacher_id, region_code, rank)
+        `INSERT INTO teacher_destinations (teacher_id, region, rank)
          VALUES ($1,$2,$3) ON CONFLICT DO NOTHING`,
         [teacher.id, region, rank++],
       );
@@ -123,20 +148,17 @@ export async function getTeacherById(id: string): Promise<Teacher | null> {
   const teacher = mapTeacher(row);
 
   const subjects = await query<{ subject_id: number }>(
-    "SELECT subject_id FROM teacher_subjects WHERE teacher_id = $1",
-    [id],
-  );
+    "SELECT subject_id FROM teacher_subjects WHERE teacher_id = $1", [id]);
   const curriculums = await query<{ curriculum: Curriculum }>(
-    "SELECT curriculum FROM teacher_curriculums WHERE teacher_id = $1",
-    [id],
-  );
-  const destinations = await query<{ region_code: string; rank: number }>(
-    "SELECT region_code, rank FROM teacher_destinations WHERE teacher_id = $1 ORDER BY rank",
-    [id],
-  );
+    "SELECT curriculum FROM teacher_curriculums WHERE teacher_id = $1", [id]);
+  const english = await query<{ status: EnglishStatus }>(
+    "SELECT status FROM teacher_english WHERE teacher_id = $1", [id]);
+  const destinations = await query<{ region: RegionCode; rank: number }>(
+    "SELECT region, rank FROM teacher_destinations WHERE teacher_id = $1 ORDER BY rank", [id]);
 
   teacher.subjects = subjects.map((s) => s.subject_id);
   teacher.curriculums = curriculums.map((c) => c.curriculum);
-  teacher.destinations = destinations.map((d) => ({ regionCode: d.region_code, rank: d.rank }));
+  teacher.englishStatuses = english.map((e) => e.status);
+  teacher.destinations = destinations.map((d) => ({ region: d.region, rank: d.rank }));
   return teacher;
 }

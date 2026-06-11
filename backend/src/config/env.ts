@@ -2,8 +2,16 @@
 // required is missing or malformed, we fail loudly here with a clear message
 // rather than mysteriously later. Everything else imports `env` from here.
 
-import "dotenv/config";
+import { config as loadEnv } from "dotenv";
+import { fileURLToPath } from "node:url";
+import { dirname, resolve } from "node:path";
 import { z } from "zod";
+
+// Load backend/.env explicitly, regardless of where the process is started from
+// (e.g. repo root via npm workspaces). Without this, dotenv looks in the current
+// working directory and misses backend/.env.
+const __dirname = dirname(fileURLToPath(import.meta.url));
+loadEnv({ path: resolve(__dirname, "../../.env") });
 
 const schema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),

@@ -28,7 +28,7 @@ CREATE TABLE jobs (
 
   -- --- Location ---
   country_code       TEXT,                 -- ISO-ish: 'ae','qa','sa','gb','sg'
-  region_code        TEXT,                 -- our grouping: 'gulf','asia','uk'...
+  region        region_code,          -- shared vocabulary with teacher prefs
   city               TEXT,
 
   -- --- Compensation / perks (often what makes Gulf roles attractive) ---
@@ -76,7 +76,7 @@ CREATE TRIGGER trg_jobs_updated
 -- --- Indexes for the queries we'll actually run -----------------------------
 -- Only ever show live, fresh jobs: this partial index keeps that query fast.
 CREATE INDEX idx_jobs_active_fresh
-  ON jobs (region_code, first_seen_at DESC)
+  ON jobs (region, first_seen_at DESC)
   WHERE status = 'active';
 
 -- Worker needs to find what to re-verify (oldest verification first).
