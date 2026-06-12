@@ -5,20 +5,24 @@ import { z } from "zod";
 
 export const intakeSchema = z.object({
   // Q1 — subjects (at least one). IDs from /api/subjects.
-  subjectIds: z.array(z.number().int().positive()).min(1, "Pick at least one subject"),
+  subjectIds: z.array(z.number().int().positive()).default([]),  // optional: primary teachers may not specialise
   otherSubject: z.string().max(120).nullable().optional(),
 
   // Q2 — highest qualification (single-select)
   qualification: z.enum([
-    "bed_subject",
-    "degree_plus_pgde",
-    "masters_education",
-    "degree_no_teaching_qual",
+    "ond", "hnd", "nce", "bed", "bachelor_other", "pgd", "masters", "phd",
   ]),
   // Q2 add-ons
   trcnCertified: z.boolean().nullable().optional(),
+  hasPgde: z.boolean().nullable().optional(),
+  hasQts: z.boolean().nullable().optional(),
   hasTeachingLicense: z.boolean().nullable().optional(),
   licenseCountry: z.string().max(100).nullable().optional(),
+
+  // Teaching levels (multi-select, at least one)
+  levels: z
+    .array(z.enum(["early_years", "primary", "junior_secondary", "senior_secondary"]))
+    .min(1, "Pick at least one level you teach"),
 
   // Q3 — experience band. max null = "15+".
   yearsExperienceMin: z.number().int().min(0).max(60),

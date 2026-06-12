@@ -2,10 +2,20 @@
 // Used by both backend and frontend so the two never disagree on valid values.
 
 export type QualificationLevel =
-  | "bed_subject"
-  | "degree_plus_pgde"
-  | "masters_education"
-  | "degree_no_teaching_qual";
+  | "ond"
+  | "hnd"
+  | "nce"
+  | "bed"
+  | "bachelor_other"
+  | "pgd"
+  | "masters"
+  | "phd";
+
+export type TeachingLevel =
+  | "early_years"
+  | "primary"
+  | "junior_secondary"
+  | "senior_secondary";
 
 export type Curriculum =
   | "nigerian"

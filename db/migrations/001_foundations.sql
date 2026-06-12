@@ -9,13 +9,29 @@ CREATE EXTENSION IF NOT EXISTS pgcrypto;
 CREATE EXTENSION IF NOT EXISTS vector;
 CREATE EXTENSION IF NOT EXISTS citext;
 
--- Q2 — highest teaching qualification (single-select). QTS moved to the
--- teaching-license question; TRCN is a separate boolean on teachers.
+-- Q2 — highest ACADEMIC qualification (single-select). Broadened to reflect the
+-- real credential landscape of Nigerian teachers (NCE, OND/HND, BSc/BA/BTech,
+-- not only education degrees). Teaching qualifications (PGDE/QTS/TRCN/license)
+-- are captured SEPARATELY as flags on the teacher.
 CREATE TYPE qualification_level AS ENUM (
-  'bed_subject',
-  'degree_plus_pgde',
-  'masters_education',
-  'degree_no_teaching_qual'
+  'ond',                         -- Ordinary National Diploma
+  'hnd',                         -- Higher National Diploma
+  'nce',                         -- Nigeria Certificate in Education
+  'bed',                         -- Bachelor's in Education
+  'bachelor_other',              -- BSc / BA / BTech / B.Eng (non-education)
+  'pgd',                         -- Postgraduate Diploma
+  'masters',                     -- Master's
+  'phd'                          -- PhD / Doctorate
+);
+
+-- Teaching level / stage (multi-select). Labels in the UI show the equivalent
+-- names across systems (Nigerian / Grades / Key Stage / IB) so teachers
+-- recognise their own system while matching aligns to the international one.
+CREATE TYPE teaching_level AS ENUM (
+  'early_years',                 -- Nursery/KG/Pre-K/EYFS/Foundation (~3-5)
+  'primary',                     -- Primary 1-6 / Grades 1-5 / KS1-2 / PYP (~6-11)
+  'junior_secondary',            -- JSS / Grades 6-8 / KS3 / MYP (~11-14)
+  'senior_secondary'             -- SSS / Grades 9-12 / KS4-5 / IGCSE / A-Level / IB DP (~14-18)
 );
 
 -- Q5 — curriculums (multi-select). 'other' stored with free text alongside.

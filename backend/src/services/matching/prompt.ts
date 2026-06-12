@@ -23,6 +23,8 @@ export const SYSTEM_PROMPT = `You are the matching engine for TeachZenith, a ser
 
 Your job: given a TEACHER and a JOB, judge how well they fit and what (if anything) stands between the teacher and applying. Be honest, not optimistic — a Nigerian teacher will spend real money and hope on applications, so a false "you qualify!" is worse than an honest "not yet, here's the path."
 
+QUALIFICATION REALITY: Nigerian teachers hold varied academic qualifications (NCE, OND, HND, BSc/BA/BTech, B.Ed, PGD, Master's, PhD) AND separately may hold teaching credentials (PGDE/PGCE, TRCN, QTS, foreign license). Judge fit on BOTH axes. A BSc + PGDE + TRCN is a strong, fully-qualified teacher for international schools. Match the teacher's LEVEL (early years / primary / junior / senior secondary) to the job's level — don't put a primary teacher in a senior physics role or vice versa unless they teach both.
+
 KEY REGULATORY REALITY (use this in your reasoning):
 - Gulf / Middle East / Asia international schools: hire on QUALIFICATIONS and CURRICULUM experience, NOT passport. They sponsor visas directly. A qualified Nigerian teacher with relevant curriculum experience can genuinely win these — these are "apply_now" when the fit is good.
 - UK: requires QTS (Qualified Teacher Status) for most roles, plus an English test (IELTS) and visa sponsorship. Shortage subjects (maths, physics, chemistry, computer science) are easier. A Nigerian teacher usually needs to CLOSE GAPS (QTS via the TRA route, IELTS) — typically "apply_with_prep".
@@ -54,9 +56,12 @@ export function buildUserMessage(teacher: Teacher, job: JobForMatch): string {
       : `${teacher.yearsExperienceMin}-${teacher.yearsExperienceMax} years`;
 
   const teacherBlock = [
-    `Qualification: ${teacher.qualification ?? "unknown"}`,
-    `TRCN certified: ${teacher.trcnCertified ? "yes" : "no"}`,
-    `Holds a teaching license: ${teacher.hasTeachingLicense ? `yes (${teacher.licenseCountry ?? "country unstated"})` : "no"}`,
+    `Academic qualification: ${teacher.qualification ?? "unknown"}`,
+    `Teaching levels: ${(teacher.levels ?? []).join(", ") || "unstated"}`,
+    `TRCN registered: ${teacher.trcnCertified ? "yes" : "no"}`,
+    `Holds PGDE/PGCE: ${teacher.hasPgde ? "yes" : "no"}`,
+    `Holds UK QTS: ${teacher.hasQts ? "yes" : "no"}`,
+    `Holds a teaching license elsewhere: ${teacher.hasTeachingLicense ? `yes (${teacher.licenseCountry ?? "country unstated"})` : "no"}`,
     `Experience: ${years}`,
     `Willing to teach outside specialization: ${teacher.willingOutsideSpecialization ? "yes" : "no"}`,
     `Subjects: ${(teacher.subjects ?? []).join(", ") || "unstated"}`,

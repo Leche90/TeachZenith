@@ -19,8 +19,10 @@ CREATE TABLE teachers (
   qualification         qualification_level,
 
   -- Q2 add-ons
-  trcn_certified        BOOLEAN,            -- TRCN certified? (yes/no)
-  has_teaching_license  BOOLEAN,            -- license/cert in any country? (incl. QTS)
+  trcn_certified        BOOLEAN,            -- TRCN registered? (yes/no)
+  has_pgde              BOOLEAN,            -- holds PGDE / PGCE?
+  has_qts               BOOLEAN,            -- holds UK Qualified Teacher Status?
+  has_teaching_license  BOOLEAN,            -- license/cert in another country?
   license_country       TEXT,              -- if yes, which country
 
   -- Q3 — experience band (we store the numeric range; max NULL = open-ended "15+")
@@ -83,6 +85,13 @@ CREATE TABLE teacher_english (
   teacher_id UUID NOT NULL REFERENCES teachers(id) ON DELETE CASCADE,
   status     english_status NOT NULL,
   PRIMARY KEY (teacher_id, status)
+);
+
+-- --- Teaching levels (multi-select): early_years / primary / junior / senior --
+CREATE TABLE teacher_levels (
+  teacher_id UUID NOT NULL REFERENCES teachers(id) ON DELETE CASCADE,
+  level      teaching_level NOT NULL,
+  PRIMARY KEY (teacher_id, level)
 );
 
 -- --- Destination preferences (Q7, ranked) ------------------------------------

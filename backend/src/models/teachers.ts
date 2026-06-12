@@ -8,6 +8,7 @@ import type {
   Curriculum,
   QualificationLevel,
   EnglishStatus,
+  TeachingLevel,
   RegionCode,
 } from "../../../shared/types/index.js";
 
@@ -18,6 +19,8 @@ interface TeacherRow {
   phone: string | null;
   qualification: QualificationLevel | null;
   trcn_certified: boolean | null;
+  has_pgde: boolean | null;
+  has_qts: boolean | null;
   has_teaching_license: boolean | null;
   license_country: string | null;
   years_experience_min: number | null;
@@ -40,6 +43,8 @@ function mapTeacher(r: TeacherRow): Teacher {
     phone: r.phone,
     qualification: r.qualification,
     trcnCertified: r.trcn_certified,
+    hasPgde: r.has_pgde,
+    hasQts: r.has_qts,
     hasTeachingLicense: r.has_teaching_license,
     licenseCountry: r.license_country,
     yearsExperienceMin: r.years_experience_min,
@@ -60,8 +65,11 @@ export interface CreateTeacherInput {
   otherSubject?: string | null;
   qualification: QualificationLevel;
   trcnCertified?: boolean | null;
+  hasPgde?: boolean | null;
+  hasQts?: boolean | null;
   hasTeachingLicense?: boolean | null;
   licenseCountry?: string | null;
+  levels: TeachingLevel[];
   yearsExperienceMin: number;
   yearsExperienceMax: number | null;
   willingOutsideSpecialization?: boolean | null;
@@ -80,17 +88,19 @@ export async function createTeacher(input: CreateTeacherInput): Promise<Teacher>
 
     const insert = await client.query<TeacherRow>(
       `INSERT INTO teachers
-         (email, full_name, qualification, trcn_certified, has_teaching_license,
-          license_country, years_experience_min, years_experience_max,
-          willing_outside_specialization, other_subject, other_curriculum,
-          completed_intake_at)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11, now())
+         (email, full_name, qualification, trcn_certified, has_pgde, has_qts,
+          has_teaching_license, license_country, years_experience_min,
+          years_experience_max, willing_outside_specialization, other_subject,
+          other_curriculum, completed_intake_at)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13, now())
        RETURNING *`,
       [
         input.email ?? null,
         input.fullName ?? null,
         input.qualification,
         input.trcnCertified ?? null,
+        input.hasPgde ?? null,
+        input.hasQts ?? null,
         input.hasTeachingLicense ?? null,
         input.licenseCountry ?? null,
         input.yearsExperienceMin,
@@ -114,6 +124,13 @@ export async function createTeacher(input: CreateTeacherInput): Promise<Teacher>
         `INSERT INTO teacher_curriculums (teacher_id, curriculum)
          VALUES ($1,$2) ON CONFLICT DO NOTHING`,
         [teacher.id, c],
+      );
+    }
+    for (const lvl of input.levels) {
+      await client.query(
+        `INSERT INTO teacher_levels (teacher_id, level)
+         VALUES ($1,$2) ON CONFLICT DO NOTHING`,
+        [teacher.id, lvl],
       );
     }
     for (const s of input.englishStatuses) {
@@ -153,12 +170,15 @@ export async function getTeacherById(id: string): Promise<Teacher | null> {
     "SELECT curriculum FROM teacher_curriculums WHERE teacher_id = $1", [id]);
   const english = await query<{ status: EnglishStatus }>(
     "SELECT status FROM teacher_english WHERE teacher_id = $1", [id]);
+  const levels = await query<{ level: TeachingLevel }>(
+    "SELECT level FROM teacher_levels WHERE teacher_id = $1", [id]);
   const destinations = await query<{ region: RegionCode; rank: number }>(
     "SELECT region, rank FROM teacher_destinations WHERE teacher_id = $1 ORDER BY rank", [id]);
 
   teacher.subjects = subjects.map((s) => s.subject_id);
   teacher.curriculums = curriculums.map((c) => c.curriculum);
   teacher.englishStatuses = english.map((e) => e.status);
+  teacher.levels = levels.map((l) => l.level);
   teacher.destinations = destinations.map((d) => ({ region: d.region, rank: d.rank }));
   return teacher;
 }

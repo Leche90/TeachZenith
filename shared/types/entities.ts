@@ -6,6 +6,7 @@ import type {
   QualificationLevel,
   Curriculum,
   EnglishStatus,
+  TeachingLevel,
   FrictionTier,
   JobStatus,
   ApplicationStatus,
@@ -21,6 +22,8 @@ export interface Teacher {
   phone: string | null;
   qualification: QualificationLevel | null;
   trcnCertified: boolean | null;
+  hasPgde: boolean | null;
+  hasQts: boolean | null;
   hasTeachingLicense: boolean | null;
   licenseCountry: string | null;
   yearsExperienceMin: number | null;
@@ -37,6 +40,7 @@ export interface Teacher {
   subjects?: number[];
   curriculums?: Curriculum[];
   englishStatuses?: EnglishStatus[];
+  levels?: TeachingLevel[];
   destinations?: TeacherDestination[];
 }
 
