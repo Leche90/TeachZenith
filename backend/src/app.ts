@@ -5,6 +5,7 @@ import express from "express";
 import { healthRouter } from "./routes/health.js";
 import { subjectsRouter } from "./routes/subjects.js";
 import { intakeRouter } from "./routes/intake.js";
+import { matchesRouter } from "./routes/matches.js";
 import { errorHandler, notFound } from "./middleware/error.js";
 
 export function createApp() {
@@ -21,6 +22,7 @@ export function createApp() {
         health: "/api/health",
         dbHealth: "/api/health/db",
         subjects: "/api/subjects",
+        matches: "/api/teachers/:id/matches",
       },
       docs: "See /api/health for basic status",
     });
@@ -30,6 +32,7 @@ export function createApp() {
   app.use("/api", healthRouter);
   app.use("/api", subjectsRouter);
   app.use("/api", intakeRouter);
+  app.use("/api", matchesRouter);
 
   // 404 + error handling last.
   app.use(notFound);

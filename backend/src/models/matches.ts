@@ -21,6 +21,110 @@ export async function saveMatch(
   );
 }
 
+// A match enriched with the job details the results screen needs to render.
+export interface EnrichedMatch {
+  matchId: string;
+  jobId: string;
+  score: number;
+  tier: FrictionTier;
+  reasoning: string | null;
+  gaps: MatchGap[];
+  job: {
+    title: string;
+    schoolName: string | null;
+    region: string | null;
+    countryCode: string | null;
+    city: string | null;
+    applyUrl: string | null;
+    isTaxFree: boolean | null;
+    housingProvided: boolean | null;
+    visaSponsored: boolean | null;
+    firstSeenAt: Date;
+    lastVerifiedAt: Date;
+  };
+}
+
+export interface GroupedMatches {
+  apply_now: EnrichedMatch[];
+  apply_with_prep: EnrichedMatch[];
+  plan_ahead: EnrichedMatch[];
+  counts: { apply_now: number; apply_with_prep: number; plan_ahead: number; total: number };
+}
+
+interface EnrichedRow {
+  match_id: string;
+  job_id: string;
+  score: number;
+  tier: FrictionTier;
+  reasoning: string | null;
+  gaps: MatchGap[];
+  title: string;
+  school_name: string | null;
+  region: string | null;
+  country_code: string | null;
+  city: string | null;
+  apply_url: string | null;
+  is_tax_free: boolean | null;
+  housing_provided: boolean | null;
+  visa_sponsored: boolean | null;
+  first_seen_at: Date;
+  last_verified_at: Date;
+}
+
+// Enriched matches for the results screen: joins jobs, filters out low scores
+// and expired jobs, and groups by tier (best first within each).
+export async function getGroupedMatchesForTeacher(
+  teacherId: string,
+  minScore = 40,
+): Promise<GroupedMatches> {
+  const rows = await query<EnrichedRow>(
+    `SELECT m.id AS match_id, m.job_id, m.score, m.tier, m.reasoning, m.gaps,
+            j.title, j.school_name, j.region, j.country_code, j.city, j.apply_url,
+            j.is_tax_free, j.housing_provided, j.visa_sponsored,
+            j.first_seen_at, j.last_verified_at
+     FROM matches m
+     JOIN jobs j ON j.id = m.job_id
+     WHERE m.teacher_id = $1 AND m.score >= $2 AND j.status = 'active'
+     ORDER BY m.score DESC`,
+    [teacherId, minScore],
+  );
+
+  const grouped: GroupedMatches = {
+    apply_now: [],
+    apply_with_prep: [],
+    plan_ahead: [],
+    counts: { apply_now: 0, apply_with_prep: 0, plan_ahead: 0, total: 0 },
+  };
+
+  for (const r of rows) {
+    const enriched: EnrichedMatch = {
+      matchId: r.match_id,
+      jobId: r.job_id,
+      score: r.score,
+      tier: r.tier,
+      reasoning: r.reasoning,
+      gaps: r.gaps ?? [],
+      job: {
+        title: r.title,
+        schoolName: r.school_name,
+        region: r.region,
+        countryCode: r.country_code,
+        city: r.city,
+        applyUrl: r.apply_url,
+        isTaxFree: r.is_tax_free,
+        housingProvided: r.housing_provided,
+        visaSponsored: r.visa_sponsored,
+        firstSeenAt: r.first_seen_at,
+        lastVerifiedAt: r.last_verified_at,
+      },
+    };
+    grouped[r.tier].push(enriched);
+    grouped.counts[r.tier]++;
+    grouped.counts.total++;
+  }
+  return grouped;
+}
+
 interface MatchRow {
   id: string;
   teacher_id: string;
