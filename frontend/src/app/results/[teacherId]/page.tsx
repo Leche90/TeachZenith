@@ -150,10 +150,23 @@ function DetailContent({ m, tier, back, rounded }: { m: EnrichedMatch; tier: Fri
         <div className="mb-4 flex items-center gap-1.5 text-[12.5px] font-semibold text-positive">
           <span>●</span> Verified live recently
         </div>
-        {m.job.applyUrl ? (
+        {m.job.careersUrl ? (
+          <>
+            <a href={m.job.careersUrl} target="_blank" rel="noopener noreferrer"
+              className="block w-full rounded-2xl bg-brass py-4 text-center text-base font-bold text-emerald shadow-lg transition hover:brightness-105 active:scale-[.98]">
+              View careers at {m.job.careersName} →
+            </a>
+            {m.job.applyUrl && (
+              <a href={m.job.applyUrl} target="_blank" rel="noopener noreferrer"
+                className="mt-2 block text-center text-[12.5px] text-muted underline transition hover:text-ink">
+                See the original listing
+              </a>
+            )}
+          </>
+        ) : m.job.applyUrl ? (
           <a href={m.job.applyUrl} target="_blank" rel="noopener noreferrer"
             className="block w-full rounded-2xl bg-brass py-4 text-center text-base font-bold text-emerald shadow-lg transition hover:brightness-105 active:scale-[.98]">
-            Apply on the school&apos;s site →
+            Apply now →
           </a>
         ) : (
           <div className="rounded-2xl bg-ivory-deep py-4 text-center text-sm text-muted">Application link unavailable</div>

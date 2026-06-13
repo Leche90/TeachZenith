@@ -4,6 +4,7 @@
 import { pool, query } from "../db/pool.js";
 import type { Match, MatchGap, FrictionTier } from "../../../shared/types/index.js";
 import type { MatchOutput } from "../services/matching/matcher.js";
+import { findCareersUrl } from "../services/employers/registry.js";
 
 export async function saveMatch(
   teacherId: string,
@@ -36,6 +37,10 @@ export interface EnrichedMatch {
     countryCode: string | null;
     city: string | null;
     applyUrl: string | null;
+    // When we recognise the employer, a verified first-party careers URL to
+    // prefer over the aggregator apply link (and the name to show on the button).
+    careersUrl: string | null;
+    careersName: string | null;
     isTaxFree: boolean | null;
     housingProvided: boolean | null;
     visaSponsored: boolean | null;
@@ -111,6 +116,8 @@ export async function getGroupedMatchesForTeacher(
         countryCode: r.country_code,
         city: r.city,
         applyUrl: r.apply_url,
+        careersUrl: findCareersUrl(r.school_name)?.careersUrl ?? null,
+        careersName: findCareersUrl(r.school_name)?.displayName ?? null,
         isTaxFree: r.is_tax_free,
         housingProvided: r.housing_provided,
         visaSponsored: r.visa_sponsored,

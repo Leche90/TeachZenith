@@ -46,6 +46,8 @@ export interface EnrichedMatch {
     countryCode: string | null;
     city: string | null;
     applyUrl: string | null;
+    careersUrl: string | null;
+    careersName: string | null;
     visaSponsored: boolean | null;
   };
 }
