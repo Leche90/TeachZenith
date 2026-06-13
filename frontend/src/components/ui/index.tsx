@@ -34,7 +34,7 @@ export function PrimaryButton({ disabled, onClick, children }: { disabled?: bool
       disabled={disabled}
       onClick={onClick}
       className={`w-full rounded-2xl py-4 text-base font-bold transition active:scale-[.98] ${
-        disabled ? "bg-ivory-deep text-muted" : "bg-emerald text-ivory shadow"
+        disabled ? "bg-ivory-deep text-muted" : "bg-brass text-emerald shadow-lg hover:brightness-105"
       }`}
     >
       {children}

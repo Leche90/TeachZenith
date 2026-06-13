@@ -2,6 +2,8 @@
 // app without binding a port). Wires JSON parsing, routes, and error handling.
 
 import express from "express";
+import cors from "cors";
+import { env } from "./config/env.js";
 import { healthRouter } from "./routes/health.js";
 import { subjectsRouter } from "./routes/subjects.js";
 import { intakeRouter } from "./routes/intake.js";
@@ -10,6 +12,11 @@ import { errorHandler, notFound } from "./middleware/error.js";
 
 export function createApp() {
   const app = express();
+
+  // Allow the frontend (different origin/port) to call this API. CORS_ORIGIN can
+  // be a comma-separated list; we split it into an allow-list.
+  const allowedOrigins = env.CORS_ORIGIN.split(",").map((o) => o.trim());
+  app.use(cors({ origin: allowedOrigins, credentials: true }));
 
   app.use(express.json());
 

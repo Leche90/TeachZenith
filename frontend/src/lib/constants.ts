@@ -54,7 +54,7 @@ export const EXPERIENCE: { value: [number, number | null]; label: string }[] = [
 ];
 
 export const CURRICULA: { value: string; label: string }[] = [
-  { value: "nigerian", label: "Nigerian (WAEC/NECO)" },
+  { value: "nigerian", label: "Nigerian (WAEC/NECO/SSEC)" },
   { value: "british_igcse", label: "British / IGCSE / Cambridge" },
   { value: "ib", label: "IB (PYP/MYP/DP)" },
   { value: "american", label: "American" },

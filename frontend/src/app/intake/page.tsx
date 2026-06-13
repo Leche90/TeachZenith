@@ -2,6 +2,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Chip, YesNo, PrimaryButton } from "@/components/ui";
+import EduBackground from "@/components/ui/EduBackground";
 import { SUBJECTS, LEVELS, QUALS, EXPERIENCE, CURRICULA, ENGLISH, REGIONS } from "@/lib/constants";
 import { createTeacher, runMatch } from "@/lib/api";
 import type { IntakePayload } from "@/types";
@@ -34,7 +35,7 @@ export default function IntakePage() {
   const steps = [
     { title: "What level do you teach?", hint: "Select all that apply. We show the equivalent names across systems.", ok: a.levels.length > 0,
       body: (
-        <div className="flex flex-col gap-2.5">
+        <div className="grid grid-cols-1 gap-2.5 md:grid-cols-2">
           {LEVELS.map((l) => {
             const on = a.levels.includes(l.value);
             return (
@@ -52,13 +53,17 @@ export default function IntakePage() {
     { title: "Your highest academic qualification?", hint: "Choose one, then tell us your teaching credentials.", ok: !!a.qual,
       body: (
         <div className="flex flex-col gap-2">
-          {QUALS.map((q) => <Chip key={q.value} on={a.qual === q.value} onClick={() => setA((p) => ({ ...p, qual: q.value }))}>{q.label}</Chip>)}
+          <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+            {QUALS.map((q) => <Chip key={q.value} on={a.qual === q.value} onClick={() => setA((p) => ({ ...p, qual: q.value }))}>{q.label}</Chip>)}
+          </div>
           <div className="my-2 h-px bg-line" />
           <div className="text-[12.5px] text-muted">Teaching credentials:</div>
-          <CredRow label="TRCN registered?" v={a.trcn} set={(x) => setA((p) => ({ ...p, trcn: x }))} />
-          <CredRow label="Hold a PGDE / PGCE?" v={a.pgde} set={(x) => setA((p) => ({ ...p, pgde: x }))} />
-          <CredRow label="Hold UK QTS?" v={a.qts} set={(x) => setA((p) => ({ ...p, qts: x }))} />
-          <CredRow label="License in another country?" v={a.license} set={(x) => setA((p) => ({ ...p, license: x }))} />
+          <div className="grid grid-cols-1 gap-x-6 gap-y-1 md:grid-cols-2">
+            <CredRow label="TRCN registered?" v={a.trcn} set={(x) => setA((p) => ({ ...p, trcn: x }))} />
+            <CredRow label="Hold a PGDE / PGCE?" v={a.pgde} set={(x) => setA((p) => ({ ...p, pgde: x }))} />
+            <CredRow label="Hold UK QTS?" v={a.qts} set={(x) => setA((p) => ({ ...p, qts: x }))} />
+            <CredRow label="License in another country?" v={a.license} set={(x) => setA((p) => ({ ...p, license: x }))} />
+          </div>
         </div>
       ) },
     { title: "Years of full-time experience?", hint: "Choose one.", ok: !!a.exp,
@@ -105,7 +110,9 @@ export default function IntakePage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col px-6 pb-7 pt-5">
+    <div className="tz-emerald-bg min-h-screen md:flex md:items-center md:justify-center md:p-8">
+      <EduBackground />
+      <div className="tz-intake-card relative z-10 flex min-h-screen flex-col bg-ivory px-6 pb-7 pt-5 md:min-h-0 md:w-full md:max-w-3xl md:rounded-3xl md:px-10 md:py-10 md:shadow-lg">
       <div className="mb-6 flex items-center gap-3">
         <button onClick={() => (step === 0 ? router.push("/") : setStep(step - 1))} className="text-2xl text-muted">←</button>
         <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-ivory-deep">
@@ -125,6 +132,7 @@ export default function IntakePage() {
         <PrimaryButton disabled={!cur.ok || submitting} onClick={() => (last ? submit() : setStep(step + 1))}>
           {submitting ? "Creating your profile…" : last ? "Find my matches" : "Continue"}
         </PrimaryButton>
+      </div>
       </div>
     </div>
   );

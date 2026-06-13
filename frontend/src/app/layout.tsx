@@ -10,10 +10,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body className="font-sans bg-ivory text-ink antialiased">
-        {/* Mobile-first frame, centered on larger screens */}
-        <div className="mx-auto min-h-screen max-w-[440px] bg-ivory shadow-lg">
-          {children}
-        </div>
+        {/* Each page owns its responsive frame (mobile-first, scaling up to desktop). */}
+        {children}
       </body>
     </html>
   );
