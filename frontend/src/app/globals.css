@@ -1,0 +1,22 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-fraunces: 'Fraunces', Georgia, serif;
+  --font-inter: 'Inter', system-ui, sans-serif;
+}
+
+/* Respect users who prefer less motion — disable our animations for them. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* Smooth scrolling within the app frame. */
+html { -webkit-font-smoothing: antialiased; }

@@ -1,25 +1,25 @@
 {
-  "name": "@teachzenith/frontend",
+  "name": "teachzenith-frontend",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "typecheck": "tsc --noEmit"
+    "lint": "next lint"
   },
   "dependencies": {
-    "next": "15.5.19",
-    "react": "19.2.7",
-    "react-dom": "19.2.7"
+    "next": "14.2.5",
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
   },
   "devDependencies": {
-    "@types/node": "22.9.0",
-    "@types/react": "19.2.17",
-    "@types/react-dom": "19.2.3",
-    "autoprefixer": "10.5.0",
-    "postcss": "8.5.15",
-    "tailwindcss": "3.4.19",
+    "@types/node": "20.14.0",
+    "@types/react": "18.3.3",
+    "@types/react-dom": "18.3.0",
+    "autoprefixer": "10.4.19",
+    "postcss": "8.4.39",
+    "tailwindcss": "3.4.6",
     "typescript": "5.9.3"
   }
 }
